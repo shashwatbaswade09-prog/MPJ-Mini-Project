@@ -1,0 +1,21 @@
+# Dependencies
+frontend/node_modules/
+.pnp
+.pnp.js
+
+# Build and IDE
+frontend/dist/
+frontend/.nx/
+backend/target/
+.idea/
+.vscode/
+
+# Local DB and Env
+backend/data/
+*.db
+.env
+.env.local
+
+# OS Files
+.DS_Store
+*.pem
