@@ -32,17 +32,16 @@ MPJ-Mini-Project/
 You will need two terminal windows to run both services simultaneously.
 
 ### 1. Spring Boot Backend
-The backend utilizes an embedded **H2 Memory Database**, which requires absolutely zero configuration on your machine. Every time the server is launched, the database schema is automatically constructed.
+The backend utilizes a **MySQL Database**. Every time the server is launched, the database schema is automatically updated via `hibernate.ddl-auto=update`.
 
 1. Open a terminal and navigate to the `backend` folder.
-2. Ensure you are using Java 17+ (e.g. `openjdk@21`).
+2. Ensure you have an active local **MySQL server** running on Port `3306` with a database named `mpj_vault`.
 3. Run the application utilizing Maven:
    ```bash
    mvn clean spring-boot:run
    ```
 4. The backend will become accessible at `http://localhost:8080`.
    - Healthcheck & Endpoints: `/api/accounts`, `/api/transactions/*`
-   - Database Console: `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:mpj-vault`, User: `sa`, blank password).
 
 ### 2. React Frontend
 The frontend uses Vite as a development server and Tailwind for UI styling.
