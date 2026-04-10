@@ -27,11 +27,24 @@ public class BankController {
             int accId = Integer.parseInt(payload.get("accountId").toString());
             int custId = Integer.parseInt(payload.get("customerId").toString());
             double balance = Double.parseDouble(payload.get("balance").toString());
+            String password = payload.get("password").toString();
             
-            bankService.createAccount(accId, custId, balance);
+            bankService.createAccount(accId, custId, balance, password);
             Map<String, String> response = new HashMap<>();
             response.put("message", "Account Created Successfully");
             return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/accounts/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, Object> payload) {
+        try {
+            int accId = Integer.parseInt(payload.get("accountId").toString());
+            String password = payload.get("password").toString();
+            Account acc = bankService.login(accId, password);
+            return ResponseEntity.ok(acc);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

@@ -2,22 +2,23 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { CreditCard, ArrowRight, UserPlus } from 'lucide-react';
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = '/api';
 
 const Login = ({ onLogin }) => {
   const [accountId, setAccountId] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [registerData, setRegisterData] = useState({ accountId: '', customerId: '', balance: '' });
+  const [registerData, setRegisterData] = useState({ accountId: '', customerId: '', balance: '', password: '' });
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      const response = await axios.get(`${API_URL}/accounts/${accountId}`);
+      const response = await axios.post(`${API_URL}/accounts/login`, { accountId, password });
       onLogin(response.data);
     } catch (err) {
-      setError('Account not found. Please try again or create an account.');
+      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
     }
   };
 
@@ -27,9 +28,10 @@ const Login = ({ onLogin }) => {
     try {
       await axios.post(`${API_URL}/accounts`, registerData);
       setAccountId(registerData.accountId);
+      setPassword(registerData.password);
       setIsRegistering(false);
       
-      const response = await axios.get(`${API_URL}/accounts/${registerData.accountId}`);
+      const response = await axios.post(`${API_URL}/accounts/login`, { accountId: registerData.accountId, password: registerData.password });
       onLogin(response.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
@@ -88,6 +90,16 @@ const Login = ({ onLogin }) => {
               onChange={(e) => setRegisterData({ ...registerData, balance: e.target.value })}
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <input
+              type="password"
+              required
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              value={registerData.password}
+              onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+            />
+          </div>
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -106,6 +118,17 @@ const Login = ({ onLogin }) => {
               className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <input
+              type="password"
+              required
+              placeholder="Enter your password"
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
           <button

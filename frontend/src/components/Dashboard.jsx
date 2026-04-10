@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ArrowUpCircle, ArrowDownCircle, RefreshCw, Activity, DollarSign } from 'lucide-react';
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = '/api';
 
 const Dashboard = ({ account, refreshAccount }) => {
   const [transactions, setTransactions] = useState([]);

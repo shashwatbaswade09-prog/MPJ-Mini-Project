@@ -24,12 +24,22 @@ public class BankService {
     }
 
     @Transactional
-    public void createAccount(int accId, int custId, double balance) {
+    public void createAccount(int accId, int custId, double balance, String password) {
         if (accountRepo.existsById(accId)) {
             throw new IllegalArgumentException("Account with ID " + accId + " already exists.");
         }
-        Account account = new Account(accId, custId, balance);
+        Account account = new Account(accId, custId, balance, password);
         accountRepo.save(account);
+    }
+
+    public Account login(int accountId, String password) {
+        Account acc = accountRepo.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        if (acc.getPassword().equals(password)) {
+            return acc;
+        } else {
+            throw new IllegalArgumentException("Invalid password");
+        }
     }
 
     @Transactional
