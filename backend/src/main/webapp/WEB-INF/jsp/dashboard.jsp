@@ -113,8 +113,8 @@
                         <c:forEach var="tx" items="${transactions}">
                             <div class="px-8 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                 <div class="flex items-center gap-5">
-                                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type == 'Deposit' || tx.type == 'Credit' ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-500'}">
-                                        <i class="fa-solid ${tx.type == 'Deposit' || tx.type == 'Credit' ? 'fa-arrow-down' : 'fa-arrow-up'} text-lg"></i>
+                                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type == 'Deposit' || tx.type == 'Transfer Credit' ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-500'}">
+                                        <i class="fa-solid ${tx.type == 'Deposit' || tx.type == 'Transfer Credit' ? 'fa-arrow-down' : 'fa-arrow-up'} text-lg"></i>
                                     </div>
                                     <div>
                                         <div class="font-bold text-slate-800">${tx.type}</div>
@@ -125,8 +125,8 @@
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="font-bold text-lg ${tx.type == 'Deposit' || tx.type == 'Credit' ? 'text-green-600' : 'text-slate-800'}">
-                                        ${tx.type == 'Deposit' || tx.type == 'Credit' ? '+' : '-'}$<fmt:formatNumber value="${tx.amount}" minFractionDigits="2"/>
+                                    <div class="font-bold text-lg ${tx.type == 'Deposit' || tx.type == 'Transfer Credit' ? 'text-green-600' : 'text-slate-800'}">
+                                        ${tx.type == 'Deposit' || tx.type == 'Transfer Credit' ? '+' : '-'}$<fmt:formatNumber value="${tx.amount}" minFractionDigits="2"/>
                                     </div>
                                     <div class="text-[10px] font-bold text-slate-300 uppercase">Settled</div>
                                 </div>
