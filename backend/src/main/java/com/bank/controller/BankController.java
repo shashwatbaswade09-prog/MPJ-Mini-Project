@@ -1,104 +1,117 @@
 package com.bank.controller;
 
 import com.bank.model.Account;
-import com.bank.model.Transaction;
 import com.bank.service.BankService;
-import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-@RestController
-@RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@Controller
 public class BankController {
 
-    private final BankService bankService;
+    @Autowired
+    private BankService bankService;
 
-    public BankController(BankService bankService) {
-        this.bankService = bankService;
+    // View: Login Page
+    @GetMapping("/")
+    public String index(HttpSession session) {
+        if (session.getAttribute("account") != null) return "redirect:/dashboard";
+        return "login";
     }
 
-    @PostMapping("/accounts")
-    public ResponseEntity<?> createAccount(@RequestBody Map<String, Object> payload) {
+    @GetMapping("/login")
+    public String loginPage() {
+        return "redirect:/";
+    }
+
+    // Action: Login
+    @PostMapping("/login")
+    public String login(@RequestParam int accountId, @RequestParam String password, 
+                        HttpSession session, RedirectAttributes ra) {
         try {
-            int accId = Integer.parseInt(payload.get("accountId").toString());
-            int custId = Integer.parseInt(payload.get("customerId").toString());
-            double balance = Double.parseDouble(payload.get("balance").toString());
-            String password = payload.get("password").toString();
-            
-            bankService.createAccount(accId, custId, balance, password);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Account Created Successfully");
-            return ResponseEntity.ok(response);
+            Account account = bankService.login(accountId, password);
+            session.setAttribute("account", account);
+            return "redirect:/dashboard";
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/";
         }
     }
 
-    @PostMapping("/accounts/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, Object> payload) {
+    // Action: Register
+    @PostMapping("/register")
+    public String createAccount(@RequestParam int accountId, @RequestParam int customerId, 
+                               @RequestParam double balance, @RequestParam String password,
+                               RedirectAttributes ra) {
         try {
-            int accId = Integer.parseInt(payload.get("accountId").toString());
-            String password = payload.get("password").toString();
-            Account acc = bankService.login(accId, password);
-            return ResponseEntity.ok(acc);
+            bankService.createAccount(accountId, customerId, balance, password);
+            ra.addFlashAttribute("message", "Account created successfully! Please login.");
+            return "redirect:/";
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            ra.addFlashAttribute("error", e.getMessage());
+            ra.addFlashAttribute("isRegister", true);
+            return "redirect:/";
         }
     }
 
-    @GetMapping("/accounts/{id}")
-    public ResponseEntity<?> getAccount(@PathVariable int id) {
-        Account acc = bankService.getAccount(id);
-        if (acc != null) {
-            return ResponseEntity.ok(acc);
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("error", "Account not found"));
+    // View: Dashboard
+    @GetMapping("/dashboard")
+    public String dashboard(HttpSession session, Model model) {
+        Account sessionAcc = (Account) session.getAttribute("account");
+        if (sessionAcc == null) return "redirect:/";
+
+        try {
+            // Get fresh data
+            Account account = bankService.getAccount(sessionAcc.getAccountId());
+            model.addAttribute("account", account);
+            model.addAttribute("transactions", bankService.getHistory(account.getAccountId()));
+            return "dashboard";
+        } catch (Exception e) {
+            return "redirect:/logout";
         }
     }
 
+    // Action: Transactions
     @PostMapping("/transactions/deposit")
-    public ResponseEntity<?> deposit(@RequestBody Map<String, Object> payload) {
+    public String deposit(@RequestParam int accountId, @RequestParam double amount, RedirectAttributes ra) {
         try {
-            int accId = Integer.parseInt(payload.get("accountId").toString());
-            double amount = Double.parseDouble(payload.get("amount").toString());
-            bankService.deposit(accId, amount);
-            return ResponseEntity.ok(Map.of("message", "Deposit Successful"));
+            bankService.deposit(accountId, amount);
+            ra.addFlashAttribute("message", "Deposit of $" + amount + " successful!");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            ra.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/dashboard";
     }
 
     @PostMapping("/transactions/withdraw")
-    public ResponseEntity<?> withdraw(@RequestBody Map<String, Object> payload) {
+    public String withdraw(@RequestParam int accountId, @RequestParam double amount, RedirectAttributes ra) {
         try {
-            int accId = Integer.parseInt(payload.get("accountId").toString());
-            double amount = Double.parseDouble(payload.get("amount").toString());
-            bankService.withdraw(accId, amount);
-            return ResponseEntity.ok(Map.of("message", "Withdrawal Successful"));
+            bankService.withdraw(accountId, amount);
+            ra.addFlashAttribute("message", "Withdrawal of $" + amount + " successful!");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            ra.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/dashboard";
     }
 
     @PostMapping("/transactions/transfer")
-    public ResponseEntity<?> transfer(@RequestBody Map<String, Object> payload) {
+    public String transfer(@RequestParam int fromAccount, @RequestParam int toAccount, 
+                           @RequestParam double amount, RedirectAttributes ra) {
         try {
-            int fromId = Integer.parseInt(payload.get("fromAccount").toString());
-            int toId = Integer.parseInt(payload.get("toAccount").toString());
-            double amount = Double.parseDouble(payload.get("amount").toString());
-            bankService.transfer(fromId, toId, amount);
-            return ResponseEntity.ok(Map.of("message", "Transfer Successful"));
+            bankService.transfer(fromAccount, toAccount, amount);
+            ra.addFlashAttribute("message", "Transfer of $" + amount + " to #" + toAccount + " successful!");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            ra.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/dashboard";
     }
 
-    @GetMapping("/accounts/{id}/history")
-    public ResponseEntity<List<Transaction>> getHistory(@PathVariable int id) {
-        return ResponseEntity.ok(bankService.getHistory(id));
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/";
     }
 }
